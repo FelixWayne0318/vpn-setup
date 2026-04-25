@@ -1,0 +1,110 @@
+# Clash Verge 客户端配置模板
+# 使用前替换所有 ${VARIABLE} 为实际值
+# 或使用 client/setup-mac.sh 自动生成
+
+mode: rule
+mixed-port: 7897
+interface-name: en0
+allow-lan: false
+log-level: info
+ipv6: true
+external-controller: ''
+secret: set-your-secret
+unified-delay: true
+
+tun:
+  enable: true
+  stack: gvisor
+  auto-route: true
+  strict-route: false
+  auto-detect-interface: true
+  dns-hijack:
+    - any:53
+
+dns:
+  enable: true
+  ipv6: false
+  listen: 0.0.0.0:1053
+  nameserver:
+    - 223.5.5.5
+    - 114.114.114.114
+  fallback:
+    - 8.8.8.8
+    - 1.1.1.1
+  fallback-filter:
+    geoip: true
+    geoip-code: CN
+
+profile:
+  store-selected: true
+
+proxies:
+  - name: 主节点-Reality-2083
+    type: vless
+    server: ${SERVER_IP}
+    port: ${MAIN_PORT}
+    uuid: ${MAIN_UUID}
+    network: tcp
+    tls: true
+    udp: true
+    flow: xtls-rprx-vision
+    servername: ${MAIN_DEST}
+    reality-opts:
+      public-key: ${MAIN_PUBLIC_KEY}
+      short-id: ${MAIN_SHORT_ID}
+    client-fingerprint: chrome
+
+  - name: 备用节点-Reality-8443
+    type: vless
+    server: ${SERVER_IP}
+    port: ${BACKUP_PORT}
+    uuid: ${BACKUP_UUID}
+    network: tcp
+    tls: true
+    udp: true
+    flow: xtls-rprx-vision
+    servername: ${BACKUP_DEST}
+    reality-opts:
+      public-key: ${BACKUP_PUBLIC_KEY}
+      short-id: ${BACKUP_SHORT_ID}
+    client-fingerprint: chrome
+
+  - name: CDN节点-Cloudflare
+    type: vless
+    server: ${CDN_DOMAIN}
+    port: 443
+    uuid: ${CDN_UUID}
+    network: ws
+    tls: true
+    udp: true
+    servername: ${CDN_DOMAIN}
+    ws-opts:
+      path: /
+      headers:
+        Host: ${CDN_DOMAIN}
+
+proxy-groups:
+  - name: 自动选择
+    type: url-test
+    proxies:
+      - 主节点-Reality-2083
+      - 备用节点-Reality-8443
+      - CDN节点-Cloudflare
+    url: http://www.gstatic.com/generate_204
+    interval: 300
+    tolerance: 50
+
+  - name: 节点选择
+    type: select
+    proxies:
+      - 自动选择
+      - CDN节点-Cloudflare
+      - 主节点-Reality-2083
+      - 备用节点-Reality-8443
+      - DIRECT
+
+rules:
+  - GEOSITE,private,DIRECT
+  - GEOSITE,CN,DIRECT
+  - GEOIP,CN,DIRECT
+  - MATCH,节点选择

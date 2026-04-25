@@ -1,0 +1,17 @@
+# Clash Verge 持久化配置
+# 此文件放在 profiles/merge.yaml
+# 防止 Clash Verge 重启时覆盖关键设置
+
+interface-name: en0
+
+tun:
+  enable: true
+  stack: gvisor
+  auto-route: true
+  strict-route: false
+  auto-detect-interface: true
+  dns-hijack:
+    - any:53
+
+dns:
+  listen: 0.0.0.0:1053
