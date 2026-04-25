@@ -1,16 +1,23 @@
-# vpn-setup — Self-hosted VPN for AI Coding Tools in China
+# vpn-setup — Self-hosted VPN for AI Coding Tools
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![GitHub stars](https://img.shields.io/github/stars/FelixWayne0318/vpn-setup?style=social)](https://github.com/FelixWayne0318/vpn-setup/stargazers)
 
 [中文文档](README.md) | English
 
-**One-click VLESS Reality VPN deployment. Fix Claude Code / Cursor / Windsurf / GitHub Copilot connection issues in mainland China.**
+**One-click VLESS Reality VPN deployment. Fix Claude Code / Cursor / Windsurf / GitHub Copilot connection issues.**
+
+> For developers in China, Iran, Russia, Turkey, and other censored regions — and anyone globally who gets 403 errors on AI tools after self-hosting a VPN on a VPS.
+
+> If this project helped you, please Star it so more developers can find it.
 
 ## What Problem Does This Solve?
 
-If you're a developer in mainland China, you've probably hit these walls:
+If you access AI coding tools through a VPN or proxy, you've probably hit these walls:
 
 ### Scenario 1: Browser works, but AI coding tools don't
 
-You open claude.ai and chatgpt.com in your browser just fine, but every IDE tool fails:
+You open claude.ai and chatgpt.com in your browser just fine, but every IDE-based tool fails:
 
 | Tool | Symptom |
 |------|---------|
@@ -157,7 +164,7 @@ bash verify.sh
 
 ## How Is This Different From Other VPN Projects?
 
-GitHub has plenty of Xray/Clash deployment scripts, but they only solve "getting over the wall." **AI coding tools still don't work after that** — no project has systematically solved this:
+GitHub has plenty of Xray/Clash deployment scripts, but they only solve the proxy/tunnel part. **AI coding tools still don't work after that** — no project has systematically solved this:
 
 | Problem | Other Projects | This Project |
 |---------|---------------|--------------|
@@ -171,11 +178,11 @@ GitHub has plenty of Xray/Clash deployment scripts, but they only solve "getting
 | DNS port 53 conflict crashes Clash entirely | Not addressed | Uses port 1053 instead |
 | End-to-end (server -> client -> AI tools) | Partial coverage | All-in-one solution |
 
-**TL;DR: Other projects get you over the wall. This project makes AI coding tools actually work after that.**
+**TL;DR: Other projects set up your tunnel. This project makes AI coding tools actually work through it.**
 
 ## Affected Tools (Verified)
 
-These tools all encounter the above issues when using a self-hosted VPN in mainland China. This project solves all of them:
+These tools all encounter the above issues when accessed through a VPN or proxy. This project solves all of them:
 
 - Claude Code (VS Code extension + CLI)
 - Cursor (Claude / GPT models)
@@ -185,6 +192,21 @@ These tools all encounter the above issues when using a self-hosted VPN in mainl
 - Continue.dev
 - Aider
 - Amazon Q Developer
+
+## Who Is This For?
+
+- Developers in censored regions (China, Iran, Russia, Turkey, etc.) using AI coding tools
+- Anyone globally who gets 403 after self-hosting a VPN on a VPS (Cloudflare Challenge is a global issue)
+- Need a stable dev environment, don't want to rely on commercial VPNs
+- "Browser works but IDE plugins don't"
+- "Works after login, breaks hours later"
+- Want one-click deployment, don't want to manually configure Xray / Clash
+
+## Not For
+
+- Only need web browsing (a commercial VPN is enough)
+- Not comfortable with terminal / don't have a VPS
+- AI tools already work fine on your network
 
 ## License
 
