@@ -36,6 +36,7 @@ vpn-setup/
 └── docs/
     ├── server-setup.md                # 服务器部署详细步骤
     ├── client-setup.md                # 客户端配置详细步骤
+    ├── claude-code.md                 # Claude Code VS Code 插件配置
     ├── troubleshooting.md             # 常见问题排查
     └── changes-log.md                 # 本次修复记录
 ```
