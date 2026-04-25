@@ -146,11 +146,30 @@ curl https://www.baidu.com  # 200（不走代理）
 # 无 DNS / IPv6 泄漏
 ```
 
+## 这个项目和其他 VPN 项目有什么不同？
+
+GitHub 上 Xray/Clash 部署脚本很多，但它们只解决"翻墙"这一步。**翻墙之后 AI 工具还是用不了**的问题，没有项目系统性解决过：
+
+| 问题 | 其他项目 | 本项目 |
+|------|---------|--------|
+| 浏览器能用但 VS Code Claude Code 不能用 | 没有涉及 | [完整解决方案](docs/claude-code.md) |
+| 数据中心 IP 被 Cloudflare Challenge → 403 | 没有说清根因 | 根因分析 + OAuth Token 绕过 |
+| 登录后几小时 AI 工具又断了 | 没有涉及 | OAuth Session 过期机制 + 长期 Token |
+| macOS Keychain 缓存过期 Session 导致反复 403 | 没有涉及 | 一行命令清理 |
+| AI 域名需要干净 IP（服务器端分流） | 少数有 WARP，不做域名路由 | AI 域名走 WARP，其余直连 |
+| Clash Verge 重启后配置丢失 | 没有涉及 | merge.yaml 持久化 |
+| 其他 VPN 劫持出站导致 TLS handshake eof | 没有涉及 | `interface-name: en0` 强制物理网卡 |
+| DNS 端口 53 权限冲突导致 Clash 整体崩溃 | 没有涉及 | 改用 1053 |
+| 端到端全链路（服务器→客户端→AI 工具） | 分段覆盖 | 一站式解决 |
+
+简单说：**其他项目帮你翻墙，这个项目帮你翻墙之后还能正常用 Claude Code。**
+
 ## 适用场景
 
 - 在中国大陆使用 Claude Code / Cursor / GitHub Copilot
 - 需要稳定的开发环境，不想依赖商业 VPN
 - 自建 VPN 后 AI 工具仍然 403 / ECONNRESET
+- "浏览器能用但 VS Code 插件不能用"
 - 想要一键部署，不想手动配置 Xray / Clash
 
 ## 不适用
