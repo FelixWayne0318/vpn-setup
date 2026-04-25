@@ -1,6 +1,13 @@
 # vpn-setup — 中国开发者 AI 编程工具专用自建 VPN
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![GitHub stars](https://img.shields.io/github/stars/FelixWayne0318/vpn-setup?style=social)](https://github.com/FelixWayne0318/vpn-setup/stargazers)
+
+中文 | [English](README_EN.md)
+
 **一键部署 VLESS Reality VPN，彻底解决 Claude Code / Cursor / Windsurf / GitHub Copilot 在中国大陆的连接问题。**
+
+> 如果这个项目帮到了你，请点个 Star 让更多开发者看到。
 
 ## 这个项目解决什么问题？
 
@@ -163,6 +170,8 @@ vpn-setup/
 │   ├── client-setup.md          # 多平台客户端配置
 │   └── claude-code.md           # Claude Code 连接问题完整解决方案
 ├── .env.example                 # 环境变量模板
+├── verify.sh                    # 一键全链路验证
+├── .github/ISSUE_TEMPLATE/      # Issue 模板
 └── .gitignore                   # 排除 .env 等敏感文件
 ```
 
@@ -180,16 +189,13 @@ vpn-setup/
 ## 验证效果
 
 ```bash
-# 代理连通
+# 一键全链路验证
+bash verify.sh
+
+# 或手动验证:
 curl https://www.google.com  # 200
-
-# Claude Code 正常
-claude -p "say: OK"  # OK
-
-# 国内直连
-curl https://www.baidu.com  # 200（不走代理）
-
-# 无 DNS / IPv6 泄漏
+claude -p "say: OK"          # OK
+curl https://www.baidu.com   # 200（不走代理）
 ```
 
 ## 这个项目和其他 VPN 项目有什么不同？
