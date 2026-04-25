@@ -2,13 +2,16 @@
 
 ## 症状
 
-**浏览器打开 claude.ai 正常，但 VS Code 中的 Claude Code 插件报错：**
+**浏览器打开 claude.ai 正常，但所有 AI 编程工具都报错：**
 
-- `API Error: Unable to connect to API (ECONNRESET)`
-- `Request not allowed` (403)
-- 登录后几小时突然不能用了
+- VS Code Claude Code 插件 → `ECONNRESET` 或 `403`
+- Windsurf (Antigravity) Claude 插件 → 连接失败
+- Cursor 调用 Claude API → 无法连接
+- 终端 `claude` CLI → 报错
 
-开了 VPN 也没用，换了节点也没用，但浏览器一直正常 —— 这不是 VPN 的问题，而是 Claude Code 的运行方式导致的。
+开了 VPN 也没用，换了节点也没用，但浏览器一直正常 —— 这不是 VPN 的问题，而是这些工具的运行方式导致的。
+
+**所有基于 Node.js 的 AI 编程工具都会中招**，因为它们共享同一个根本原因。
 
 ## 根本原因
 
