@@ -11,9 +11,14 @@
 - Claude Code 跑到一半报 `ECONNRESET`，之前的上下文全丢了
 - 关键时刻用不了，你的工作流完全依赖一个不可控的第三方
 
-### 自建了 VPN，但 AI 工具还是用不了
+### 浏览器能用，但 VS Code 插件不能用
+- 浏览器打开 claude.ai / chatgpt.com 完全正常
+- 但 VS Code 中的 Claude Code 插件报 403 或 ECONNRESET
+- 刚登录能用，过几小时又不行了
+- 开了 VPN 也没用，换了节点也没用，完全搞不懂为什么
+
+### 自建了 VPN，AI 工具还是 403
 - Vultr / AWS / DigitalOcean 的数据中心 IP 被 Cloudflare Challenge 拦截
-- Claude Code 报 403 `Request not allowed`，但浏览器能正常访问 claude.ai
 - 搜了一堆帖子，试了 WARP、换 IP、改 DNS，折腾半天还是不行
 
 ### 根本原因（很少有人说清楚）

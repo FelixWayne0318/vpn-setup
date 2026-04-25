@@ -1,21 +1,38 @@
 # Claude Code (VS Code 插件) 配置指南
 
-## 问题背景
+## 症状
 
-Claude Code 运行在 Node.js 上，有两个独立问题叠加导致无法工作：
+**浏览器打开 claude.ai 正常，但 VS Code 中的 Claude Code 插件报错：**
 
-1. **Node.js 不读系统代理** — 必须通过环境变量 `HTTPS_PROXY` 显式指定
-2. **Vultr IP 被 Cloudflare Challenge** — OAuth 刷新访问 `claude.ai` / `platform.claude.com` 时返回 403
+- `API Error: Unable to connect to API (ECONNRESET)`
+- `Request not allowed` (403)
+- 登录后几小时突然不能用了
 
-### 关键区别
+开了 VPN 也没用，换了节点也没用，但浏览器一直正常 —— 这不是 VPN 的问题，而是 Claude Code 的运行方式导致的。
 
-| 端点 | Cloudflare Challenge | Vultr/WARP IP 结果 |
-|------|---------------------|-------------------|
+## 根本原因
+
+Claude Code 运行在 Node.js 上，有**两个独立问题叠加**：
+
+### 问题 1: Node.js 不读系统代理
+
+浏览器能用是因为它读取了 macOS 系统代理设置。但 Node.js（Claude Code 的运行时）**完全忽略系统代理**，必须通过 `HTTPS_PROXY` 环境变量显式指定，否则 Claude Code 的网络请求根本不走 VPN。
+
+### 问题 2: 数据中心 IP 被 Cloudflare Challenge
+
+即使代理生效了，Claude Code 的 OAuth 刷新流程会访问 `claude.ai`。该域名对数据中心 IP（Vultr/AWS/DigitalOcean）返回 Cloudflare JavaScript Challenge（403）。浏览器能自动执行 JS Challenge 通过验证，但 Node.js 不能。
+
+| 端点 | Cloudflare Challenge | 数据中心 IP 结果 |
+|------|---------------------|----------------|
 | `api.anthropic.com` | 无 | 正常 |
-| `claude.ai` | 有 | 403 |
-| `platform.claude.com` | 有 | 403 |
+| `claude.ai` | 有 | 403 (Node.js 过不了) |
+| `platform.claude.com` | 有 | 403 (Node.js 过不了) |
 
 > **WARP 也无效**: Cloudflare WARP 的出口 IP (104.28.x.x) 同属 Cloudflare，同样被 Challenge。服务器端 WARP 路由只能解锁 API 级别访问，不能解决 OAuth 刷新问题。
+
+### 为什么"过几小时就不能用了"
+
+Claude Code 登录后获得一个短期 OAuth Session（约 16 小时），存在 macOS Keychain 中。过期后 Claude Code 尝试刷新 → 访问 `claude.ai` → 403 → 报错。所以你会看到"刚登录能用，过一会就不行了"。
 
 ## 解决方案（两步，缺一不可）
 
