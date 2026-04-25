@@ -79,7 +79,7 @@ proxies:
     udp: true
     servername: ${CDN_DOMAIN}
     ws-opts:
-      path: /
+      path: ${CDN_WS_PATH}
       headers:
         Host: ${CDN_DOMAIN}
 

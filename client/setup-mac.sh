@@ -62,6 +62,7 @@ sed -i '' "s|\${BACKUP_PUBLIC_KEY}|${BACKUP_PUBLIC_KEY}|g" /tmp/clash-verge-gene
 sed -i '' "s|\${BACKUP_SHORT_ID}|${BACKUP_SHORT_ID}|g" /tmp/clash-verge-generated.yaml
 sed -i '' "s|\${CDN_UUID}|${CDN_UUID}|g" /tmp/clash-verge-generated.yaml
 sed -i '' "s|\${CDN_DOMAIN}|${CDN_DOMAIN}|g" /tmp/clash-verge-generated.yaml
+sed -i '' "s|\${CDN_WS_PATH}|${CDN_WS_PATH}|g" /tmp/clash-verge-generated.yaml
 
 cp /tmp/clash-verge-generated.yaml "$CLASH_DIR/clash-verge.yaml"
 rm /tmp/clash-verge-generated.yaml
