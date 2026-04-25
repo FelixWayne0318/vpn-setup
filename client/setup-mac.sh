@@ -71,7 +71,7 @@ echo "✅ Clash 配置已生成"
 # ===== 3. 复制 merge.yaml =====
 echo -e "${GREEN}[3/5] 配置持久化设置...${NC}"
 mkdir -p "$CLASH_DIR/profiles"
-cp "$SCRIPT_DIR/merge.yaml" "$CLASH_DIR/profiles/merge.yaml"
+cp "$SCRIPT_DIR/merge.yaml" "$CLASH_DIR/profiles/Merge.yaml"
 echo "✅ merge.yaml 已部署"
 
 # ===== 4. 配置终端代理 =====
@@ -133,4 +133,6 @@ echo "1. 在 Clash Verge 设置中安装 Service Mode（点击扳手图标）"
 echo "2. 开启虚拟网卡模式（TUN）"
 echo "3. 开启系统代理"
 echo "4. 开启开机自启"
-echo "5. 重启 VS Code"
+echo "5. 配置 Claude Code: 参见 docs/claude-code.md"
+echo "   运行 'claude setup-token' 生成 OAuth Token 写入 ~/.zshrc"
+echo "6. 重启 VS Code"

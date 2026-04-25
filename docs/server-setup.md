@@ -53,16 +53,20 @@ sudo bash server/install.sh
 ```
 
 脚本会自动:
-- 安装 Xray
-- 生成 UUID 和 Reality 密钥对
-- 配置防火墙
-- 启动服务
+- 安装 Xray (VLESS Reality 双节点 + CDN WS 节点)
+- 安装 Cloudflare WARP (AI 域名走干净 IP)
+- 生成 UUID、Reality 密钥对、Short ID
+- 配置 AI 域名路由规则 (Claude/OpenAI/Gemini)
+- 配置防火墙 (UFW)
+- 启动 Xray + WARP 服务
 
 ### 7. 记录输出信息
 
 安装完成后会输出:
 - 主节点 UUID、公钥、Short ID
 - 备用节点 UUID、公钥、Short ID
+- CDN 节点 UUID、WS Path
+- WARP 出口 IP
 - 服务器 IP
 
 **将这些信息更新到 .env 文件中**，然后回到客户端配置。
@@ -80,12 +84,19 @@ journalctl -u xray -f
 sudo systemctl restart xray
 
 # 查看连接数
-ss -tnp | grep xray | wc -l
+ss -tnp | grep xray-linux | wc -l
+
+# 查看 WARP 状态
+systemctl status warp-svc
+
+# 测试 WARP 出口
+curl --socks5 127.0.0.1:40000 https://ifconfig.me
 ```
 
 ## 更换服务器流程
 
-1. 在新服务器运行 `server/install.sh`
+1. 在新服务器运行 `sudo bash server/install.sh`
 2. 更新 `.env` 中的 `SERVER_IP` 和新生成的密钥
-3. 在客户端运行 `client/setup-mac.sh`
+3. 在 Mac 端运行 `bash client/setup-mac.sh`
 4. 手机端更新服务器 IP 和密钥信息
+5. Claude Code OAuth Token **不需要重新生成**
