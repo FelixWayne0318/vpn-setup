@@ -96,7 +96,8 @@ Mac / Windows (Clash Verge + TUN 全局透明代理)
   ├── 备用     VLESS+Reality :8443  ← 主节点被封时切换
   └── CDN节点  Cloudflare Workers   ← IP 被封时通过 CDN 中转
                     ↓
-VPS (Xray + WARP)
+VPS (x-ui 面板 + Xray + WARP)
+  ├── x-ui Web 面板管理节点和路由规则
   ├── 普通流量 → 直接出站
   └── AI 域名 (Claude/OpenAI/Gemini) → WARP 出站（干净 IP）
                     ↓
@@ -122,10 +123,12 @@ AI 编程工具 ← 长期 OAuth Token 绕过 OAuth 刷新（1 年有效）
 git clone https://github.com/FelixWayne0318/vpn-setup.git
 cd vpn-setup
 cp .env.example .env
-vi .env  # 填入服务器 IP，其他留空让脚本自动生成
+vi .env  # 填入服务器 IP
 
 sudo bash server/install.sh
-# 自动安装: Xray + WARP + 防火墙 + AI 域名路由
+# 自动安装: x-ui 面板 + WARP + 防火墙
+# 然后在 x-ui Web 面板中配置节点和 AI 域名路由规则
+# 详见 docs/server-setup.md
 ```
 
 ### 2. Mac 客户端一键配置
@@ -161,7 +164,7 @@ source ~/.zshrc
 ```
 vpn-setup/
 ├── server/
-│   ├── install.sh              # 服务器一键安装 (Xray + WARP + UFW)
+│   ├── install.sh              # 服务器一键安装 (x-ui + WARP + UFW)
 │   └── ufw-rules.sh            # 防火墙规则
 ├── client/
 │   ├── clash-verge.yaml         # Clash Verge 配置模板
@@ -183,6 +186,7 @@ vpn-setup/
 |------|------|------|
 | 协议 | VLESS + Reality | 当前抗 DPI 检测最强方案，伪装合法 TLS 握手 |
 | 加密 | TLS 1.3 CHACHA20 | 最新标准 |
+| 服务端管理 | 3x-ui 面板 | Web 界面管理节点、路由、流量统计 |
 | 客户端 | Clash Verge (mihomo) | 支持 TUN 全局透明代理 + 规则分流 |
 | AI 解锁 | Cloudflare WARP socks5 | AI 域名走干净 IP，绕过 CF Challenge |
 | 备用通道 | Cloudflare CDN Workers | IP 被封时通过 CDN 中转，永不断线 |
