@@ -42,7 +42,9 @@ source "$ENV_FILE"
 
 # Defaults
 WARP_SOCKS_PORT="${WARP_SOCKS_PORT:-40000}"
-XUI_PORT="${XUI_PORT:-2096}"
+XUI_PORT="${XUI_PORT:-19921}"
+XUI_BASE_PATH="${XUI_BASE_PATH:-/$(openssl rand -hex 12)/}"
+XUI_LISTEN="${XUI_LISTEN:-127.0.0.1}"
 
 # ===== 1. System update =====
 echo -e "${GREEN}[1/6] 更新系统...${NC}"
@@ -102,7 +104,10 @@ ufw allow ${MAIN_PORT}/tcp comment 'Xray Reality Main'
 ufw allow ${BACKUP_PORT}/tcp comment 'Xray Reality Backup'
 ufw allow 443/tcp comment 'HTTPS/CDN'
 ufw allow 80/tcp comment 'HTTP'
-ufw allow ${XUI_PORT}/tcp comment 'x-ui panel'
+# x-ui 面板仅监听 127.0.0.1，不需要开放公网端口
+# 通过 SSH 隧道访问: ssh -L ${XUI_PORT}:127.0.0.1:${XUI_PORT} user@server
+ufw deny 3000/tcp comment 'Block direct frontend access'
+ufw deny 8000/tcp comment 'Block direct backend access'
 ufw --force enable
 
 # ===== 6. Post-install instructions =====
@@ -135,8 +140,9 @@ echo "============================================"
 echo "  后续配置步骤"
 echo "============================================"
 echo ""
-echo "1. 访问 x-ui 面板:"
-echo "   http://${SERVER_IP}:${XUI_PORT}"
+echo "1. 通过 SSH 隧道访问 x-ui 面板:"
+echo "   ssh -L ${XUI_PORT}:127.0.0.1:${XUI_PORT} ${SSH_USER}@${SERVER_IP} -p ${SSH_PORT:-22}"
+echo "   然后浏览器打开: http://127.0.0.1:${XUI_PORT}${XUI_BASE_PATH}"
 echo ""
 echo "2. 在面板中添加节点:"
 echo "   - 主节点: VLESS + Reality, 端口 ${MAIN_PORT}, SNI ${MAIN_DEST}"

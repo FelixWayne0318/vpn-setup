@@ -57,6 +57,23 @@ Short ID:    .env 中的 BACKUP_SHORT_ID
 ```
 其余设置与主节点相同。
 
+### CDN 节点 (Cloudflare 中转，保底备用)
+```
+类型:        VLESS
+地址:        .env 中的 CDN_DOMAIN (如 p.algvex.com)
+端口:        443
+UUID:        .env 中的 CDN_UUID
+加密:        none
+传输方式:     ws
+TLS:         开启
+SNI:         .env 中的 CDN_DOMAIN
+Host:        .env 中的 CDN_DOMAIN
+WS Path:     .env 中的 CDN_WS_PATH
+Flow:        留空（不要填！）
+```
+> 注: CDN 节点延迟较高，仅在主/备节点不可用时使用。
+> 也可在 x-ui 面板扫描二维码导入（已配置 externalProxy）。
+
 ---
 
 ## Android 配置 (v2rayNG)

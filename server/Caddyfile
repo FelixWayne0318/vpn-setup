@@ -1,0 +1,76 @@
+# Caddy Configuration
+# 用途: AlgVex 网站反代 + VPN CDN 节点反代
+# 部署路径: /etc/caddy/Caddyfile
+
+# Global options
+{
+    email admin@algvex.com
+}
+
+algvex.com {
+    # Security headers
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        X-XSS-Protection "1; mode=block"
+        X-Frame-Options "DENY"
+        X-Content-Type-Options "nosniff"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        Permissions-Policy "camera=(), microphone=(), geolocation=()"
+    }
+
+    # Cache policy
+    header /_next/static/* Cache-Control "public, max-age=31536000, immutable"
+    header /icons/* Cache-Control "public, max-age=2592000"
+    header /apple-touch-icon.png Cache-Control "public, max-age=2592000"
+    header /favicon.ico Cache-Control "public, max-age=2592000"
+    header /sw.js Cache-Control "no-cache, no-store, must-revalidate"
+    header /sw.js Service-Worker-Allowed "/"
+    header /manifest.json Cache-Control "no-cache, no-store, must-revalidate"
+    header / Cache-Control "no-cache, no-store, must-revalidate"
+
+    # API routes -> FastAPI backend
+    handle /api/* {
+        reverse_proxy localhost:8000 {
+            header_up Host {host}
+            header_up X-Real-IP {remote_host}
+            header_up X-Forwarded-For {remote_host}
+            header_up X-Forwarded-Proto {scheme}
+            transport http {
+                response_header_timeout 150s
+            }
+        }
+    }
+
+    # All other routes -> Next.js frontend
+    handle {
+        reverse_proxy localhost:3000 {
+            header_up Host {host}
+            header_up X-Real-IP {remote_host}
+            header_up X-Forwarded-For {remote_host}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+
+    log {
+        output file /var/log/caddy/algvex.log
+        format json
+    }
+}
+
+# Redirect www to non-www
+www.algvex.com {
+    redir https://algvex.com{uri} permanent
+}
+
+# VPN CDN node — Cloudflare proxied WebSocket relay
+# DNS: p.algvex.com -> Cloudflare (proxied/orange cloud)
+# Cloudflare -> origin :443 -> Caddy -> Xray WS :10000
+p.algvex.com {
+    handle /7689b703c6e07790 {
+        reverse_proxy localhost:10000
+    }
+
+    handle {
+        respond 404
+    }
+}
