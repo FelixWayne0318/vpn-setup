@@ -79,10 +79,10 @@ else
 
     # Register and set proxy mode
     echo -e "${YELLOW}注册 WARP...${NC}"
-    warp-cli registration new
-    warp-cli mode proxy
-    warp-cli proxy port ${WARP_SOCKS_PORT}
-    warp-cli connect
+    warp-cli --accept-tos registration new
+    warp-cli --accept-tos mode proxy
+    warp-cli --accept-tos proxy port ${WARP_SOCKS_PORT}
+    warp-cli --accept-tos connect
 
     echo "等待 WARP 启动..."
     sleep 5

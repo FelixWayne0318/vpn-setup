@@ -1,4 +1,4 @@
-# Claude Code (VS Code 插件) 配置指南
+# AI 编程工具连接配置指南 (Claude Code / OpenAI Codex)
 
 ## 症状
 
@@ -28,10 +28,12 @@ Claude Code 运行在 Node.js 上，有**两个独立问题叠加**：
 | 端点 | Cloudflare Challenge | 数据中心 IP 结果 |
 |------|---------------------|----------------|
 | `api.anthropic.com` | 无 | 正常 |
+| `api.openai.com` | 无 | 正常 |
 | `claude.ai` | 有 | 403 (Node.js 过不了) |
 | `platform.claude.com` | 有 | 403 (Node.js 过不了) |
+| `auth.openai.com` | 有 | 403 (Codex/ChatGPT OAuth 登录超时) |
 
-> **WARP 也无效**: Cloudflare WARP 的出口 IP (104.28.x.x) 同属 Cloudflare，同样被 Challenge。服务器端 WARP 路由只能解锁 API 级别访问，不能解决 OAuth 刷新问题。
+> **WARP 也无效**: Cloudflare WARP 的出口 IP (104.28.x.x) 同属 Cloudflare，同样被 Challenge。服务器端 WARP 路由只能解锁 API 级别访问，不能解决 OAuth 刷新问题。WARP 出口与 VPS 同区域（如新加坡），无法选择出口地区。
 
 ### 为什么"过几小时就不能用了"
 
@@ -137,3 +139,143 @@ ln -sf ~/.vscode/extensions/anthropic.claude-code-<新版本>/resources/native-b
 |------|---------|
 | 更新 Clash 节点 IP | 是 |
 | 重新生成 Token | 否（Token 与服务器 IP 无关） |
+
+---
+
+## OpenAI Codex (VS Code 扩展 / CLI)
+
+### 症状
+
+Codex 扩展点击登录 → "糟糕，出错了！Operation timed out"。
+
+### 根因
+
+与 Claude Code 相同的问题。`auth.openai.com` 被 Cloudflare Managed Challenge 保护。
+
+浏览器 OAuth 重定向本身没问题，但 **Codex 的 HTTP 客户端无法完成 token exchange**（POST 到 `auth.openai.com/oauth/token`），因为 Cloudflare JS Challenge 阻止了非浏览器请求。这是 [OpenAI 已知 Bug](https://github.com/openai/codex/issues/16052)，全球多个地区受影响。
+
+- VPS 直连 (Vultr IP) → 403 `cf-mitigated: challenge`
+- VPS WARP (Cloudflare IP) → 403 `cf-mitigated: challenge`
+- `api.openai.com` 正常可达 → **API 调用没问题，只有 OAuth 登录有问题**
+
+### Codex 的两种认证方式
+
+| 方式 | 计费 | 适用场景 |
+|------|------|---------|
+| **ChatGPT 订阅登录** | 使用 ChatGPT Plus/Pro 订阅额度，不额外花钱 | 日常开发 |
+| **API Key 登录** | 使用 OpenAI Platform API 额度，**独立计费** | CI/CD、无浏览器环境 |
+
+> **重要**: API Key 和 ChatGPT 订阅是**独立计费**的。如果你有 ChatGPT Plus/Pro 订阅，应优先使用方案 A（订阅登录），避免额外费用。
+
+---
+
+### 方案 A: 使用 ChatGPT 订阅登录（推荐，不额外花钱）
+
+由于 Cloudflare Challenge 阻止了 token exchange，需要**在干净网络上完成一次登录**，然后缓存凭证。
+
+**步骤 1: 配置 Codex 使用文件存储凭证**
+
+```bash
+mkdir -p ~/.codex
+cat > ~/.codex/config.toml << 'EOF'
+# 强制使用 ChatGPT 订阅登录（不走 API Key）
+forced_login_method = "chatgpt"
+
+# 凭证存储到文件（方便跨网络复用）
+cli_auth_credentials_store = "file"
+EOF
+```
+
+**步骤 2: 在干净网络上完成登录**
+
+需要一个不触发 Cloudflare Challenge 的网络（以下任选一种）：
+
+- **手机热点共享** — 手机 4G/5G 热点连 Mac，临时关闭 Clash Verge，然后打开 Codex 登录
+- **其他设备上登录** — 在能正常访问 auth.openai.com 的设备上安装 Codex CLI，登录后复制 `~/.codex/auth.json` 到你的 Mac
+
+```bash
+# 方式一: 手机热点
+# 1. 手机开热点，Mac 连上
+# 2. 暂停 Clash Verge（退出或关闭系统代理+TUN）
+# 3. 打开 VS Code → Codex 扩展 → 点击登录
+# 4. 浏览器完成 OAuth → 登录成功
+# 5. 重新开启 Clash Verge
+# 6. 凭证已缓存在 ~/.codex/auth.json，后续自动复用
+
+# 方式二: 从其他设备复制
+# 在能正常登录的设备上:
+scp ~/.codex/auth.json your-mac:~/.codex/auth.json
+```
+
+**步骤 3: 验证**
+
+```bash
+# 重启 VS Code，Codex 应直接进入已登录状态
+# 检查凭证文件
+ls -la ~/.codex/auth.json
+# 应存在且非空
+```
+
+> **凭证有效期**: auth.json 中的 token 会自动刷新。如果后续刷新失败（Cloudflare 再次阻断），重复步骤 2。
+
+---
+
+### 方案 B: 使用 API Key（独立计费，立即可用）
+
+如果方案 A 不可行（没有干净网络），可以用 API Key。**注意: 这会使用 OpenAI Platform API 额度，与 ChatGPT 订阅分开计费。**
+
+**步骤 1: 生成 API Key**
+
+浏览器打开 https://platform.openai.com/api-keys → 创建 Key
+
+**步骤 2: 配置**
+
+```bash
+# 写入环境变量
+echo 'export OPENAI_API_KEY="sk-proj-你的key..."' >> ~/.zshrc
+source ~/.zshrc
+
+# 配置 Codex 使用 API Key
+mkdir -p ~/.codex
+cat > ~/.codex/config.toml << 'EOF'
+forced_login_method = "api"
+cli_auth_credentials_store = "file"
+EOF
+```
+
+**步骤 3: 重启 VS Code**
+
+---
+
+### 方案 C: 手动写入 auth.json（高级）
+
+如果你能通过浏览器获取到 OAuth token（比如从浏览器开发者工具中提取），可以直接写入：
+
+```bash
+mkdir -p ~/.codex
+cat > ~/.codex/auth.json << 'EOF'
+{
+  "token": "你的access_token",
+  "refresh_token": "你的refresh_token"
+}
+EOF
+chmod 600 ~/.codex/auth.json
+```
+
+---
+
+### 验证
+
+```bash
+# 检查 Codex 配置
+cat ~/.codex/config.toml
+
+# 检查凭证
+ls -la ~/.codex/auth.json
+
+# API 通路测试
+curl -x http://127.0.0.1:7897 \
+  -H "Authorization: Bearer ${OPENAI_API_KEY:-test}" \
+  https://api.openai.com/v1/models 2>&1 | head -3
+# 期望: 200 (API Key 模式) 或 401 (订阅模式，正常)
+```

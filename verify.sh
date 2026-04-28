@@ -75,6 +75,18 @@ if [ "$CODE" = "404" ] || [ "$CODE" = "421" ] || [ "$CODE" = "200" ]; then
 else
     check "api.openai.com" "fail" "HTTP $CODE"
 fi
+
+# auth.openai.com — Codex/ChatGPT OAuth login endpoint
+HEADERS=$(curl -s -D - -o /dev/null --max-time 10 --proxy "http://127.0.0.1:${PROXY_PORT}" https://auth.openai.com 2>/dev/null)
+AUTH_CODE=$(echo "$HEADERS" | grep -i "^HTTP" | tail -1 | awk '{print $2}')
+CF_MITIGATED=$(echo "$HEADERS" | grep -i "cf-mitigated" | head -1)
+if echo "$CF_MITIGATED" | grep -qi "challenge"; then
+    check "auth.openai.com" "warn" "HTTP $AUTH_CODE — Cloudflare challenge (use API Key for Codex)"
+elif [ "$AUTH_CODE" = "200" ] || [ "$AUTH_CODE" = "302" ]; then
+    check "auth.openai.com" "pass" "HTTP $AUTH_CODE (reachable)"
+else
+    check "auth.openai.com" "warn" "HTTP $AUTH_CODE"
+fi
 echo ""
 
 # ===== 4. Claude Code OAuth Token =====
@@ -114,8 +126,28 @@ else
 fi
 echo ""
 
-# ===== 7. China direct connection =====
-echo "7. China Direct / 国内直连"
+# ===== 7. OpenAI Codex =====
+echo "7. OpenAI Codex"
+CODEX_AUTH="$HOME/.codex/auth.json"
+CODEX_CONFIG="$HOME/.codex/config.toml"
+if [ -f "$CODEX_AUTH" ] && [ -s "$CODEX_AUTH" ]; then
+    check "Codex auth.json" "pass" "credentials cached"
+elif [ -n "$OPENAI_API_KEY" ]; then
+    PREFIX=$(echo "$OPENAI_API_KEY" | cut -c1-12)
+    check "OPENAI_API_KEY" "pass" "$PREFIX... (API Key mode, billed separately)"
+else
+    check "Codex credentials" "warn" "no auth.json or OPENAI_API_KEY — see docs/claude-code.md"
+fi
+if [ -f "$CODEX_CONFIG" ]; then
+    LOGIN_METHOD=$(grep -i "forced_login_method" "$CODEX_CONFIG" 2>/dev/null | head -1 | tr -d ' "' | cut -d= -f2)
+    if [ -n "$LOGIN_METHOD" ]; then
+        check "Codex login method" "pass" "$LOGIN_METHOD"
+    fi
+fi
+echo ""
+
+# ===== 8. China direct connection =====
+echo "8. China Direct / 国内直连"
 CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 5 https://www.baidu.com 2>/dev/null)
 if [ "$CODE" = "200" ]; then
     check "baidu.com (direct)" "pass" "HTTP $CODE"
@@ -124,8 +156,8 @@ else
 fi
 echo ""
 
-# ===== 8. DNS leak check =====
-echo "8. DNS Leak Check / DNS 泄漏检测"
+# ===== 9. DNS leak check =====
+echo "9. DNS Leak Check / DNS 泄漏检测"
 DNS_IP=$(dig +short +time=5 whoami.akamai.net @ns1-1.akamaitech.net 2>/dev/null)
 if [ -n "$DNS_IP" ]; then
     check "DNS resolver IP" "pass" "$DNS_IP"

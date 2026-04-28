@@ -92,6 +92,10 @@ export all_proxy=socks5://127.0.0.1:${PROXY_PORT}
 export HTTPS_PROXY=http://127.0.0.1:${PROXY_PORT}
 export HTTP_PROXY=http://127.0.0.1:${PROXY_PORT}
 export NO_PROXY=localhost,127.0.0.1,::1,*.local
+
+# OpenAI API Key (仅在无法用手机热点登录 Codex 时使用，独立计费)
+# https://platform.openai.com/api-keys 生成后取消注释:
+# export OPENAI_API_KEY="sk-proj-你的key..."
 PROXYEOF
     echo "✅ 已写入 ~/.zshrc"
 fi
@@ -123,6 +127,25 @@ echo -n "Claude API: "
 CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 15 --proxy "http://127.0.0.1:${PROXY_PORT}" https://api.anthropic.com 2>/dev/null)
 [ "$CODE" = "404" ] && echo -e "${GREEN}✅ HTTP $CODE (正常)${NC}" || echo -e "${RED}❌ HTTP $CODE${NC}"
 
+# ===== 6. 配置 Codex =====
+echo -e "${GREEN}[6/6] 配置 OpenAI Codex...${NC}"
+CODEX_DIR="$HOME/.codex"
+CODEX_CONFIG="$CODEX_DIR/config.toml"
+if [ -f "$CODEX_CONFIG" ]; then
+    echo "Codex 配置已存在，跳过"
+else
+    mkdir -p "$CODEX_DIR"
+    cat > "$CODEX_CONFIG" << 'CODEXEOF'
+# Codex 认证配置
+# auth.openai.com 被 Cloudflare Challenge 拦截，OAuth 登录会超时
+# 推荐: 用手机热点临时登录（使用 ChatGPT 订阅额度，不额外花钱）
+# 备选: 设置 OPENAI_API_KEY 环境变量（独立计费）
+forced_login_method = "chatgpt"
+cli_auth_credentials_store = "file"
+CODEXEOF
+    echo "✅ Codex 配置已写入 $CODEX_CONFIG"
+fi
+
 echo ""
 echo "============================================"
 echo "  配置完成"
@@ -135,4 +158,8 @@ echo "3. 开启系统代理"
 echo "4. 开启开机自启"
 echo "5. 配置 Claude Code: 参见 docs/claude-code.md"
 echo "   运行 'claude setup-token' 生成 OAuth Token 写入 ~/.zshrc"
-echo "6. 重启 VS Code"
+echo "6. 配置 OpenAI Codex:"
+echo "   手机开热点 → 暂停 Clash → 打开 Codex 登录 → 重开 Clash"
+echo "   凭证缓存在 ~/.codex/auth.json，后续自动复用"
+echo "   详见 docs/claude-code.md"
+echo "7. 重启 VS Code"
