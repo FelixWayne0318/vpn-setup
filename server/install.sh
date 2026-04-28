@@ -78,11 +78,12 @@ else
     apt install -y cloudflare-warp
 
     # Register and set proxy mode
+    # Note: warp-cli requires TTY for TOS acceptance; use script to fake it
     echo -e "${YELLOW}注册 WARP...${NC}"
-    warp-cli --accept-tos registration new
-    warp-cli --accept-tos mode proxy
-    warp-cli --accept-tos proxy port ${WARP_SOCKS_PORT}
-    warp-cli --accept-tos connect
+    script -qc 'warp-cli registration new' /dev/null <<< 'y'
+    warp-cli mode proxy
+    warp-cli proxy port ${WARP_SOCKS_PORT}
+    warp-cli connect
 
     echo "等待 WARP 启动..."
     sleep 5
